@@ -1,0 +1,39 @@
+from urllib.request import urlopen
+import bs4
+import pandas as pd
+import datetime
+today_endpoint = "https://openapi.kpx.or.kr/openapi/sukub5mToday/getSukub5mToday?"
+ServiceKey = 'JJN1XodspdXxB3w9Ky8dvDKSELYRpUF7RXkNJeRORApQrQZLzd9vnl7S3SOXN%2B13RbHLfvR9HziiydudoZsW2Q%3D%3D' 
+//서비스키 부분은 텍스트파일로 바꾸어 읽어들이는 형식으로 대외비
+paramset = "ServiceKey=" + ServiceKey
+today_url = today_endpoint + paramset
+today_load = urlopen(today_url).read()
+soup = bs4.BeautifulSoup(today_load,'lxml-xml')
+item = soup.find_all('item')
+for i in item:
+    dt = datetime.datetime.strptime(i.find("baseDatetime").text,'%Y%m%d%H%M%S')
+    currPwrTot = i.find("currPwrTot").text
+
+    temp = pd.DataFrame([[dt,currPwrTot]],columns=["baseDatetime","currPwrTot"])
+    df_load = pd.concat([df_load,temp],ignore_index=True)
+    
+    //
+    
+current_endpoint = "https://openapi.kpx.or.kr/openapi/sukub5mMaxDatetime/getSukub5mMaxDatetime?"
+ServiceKey_current = 'rYTQcR07pI8FebbeiceNHv6z5TqwF1YnZkpzq7L3N5IBa74aUfFHUvdZaepnwPJI5mywHNzhap1ofojm0x%2B6bw%3D%3D'
+
+paramset_current = "ServiceKey=" + ServiceKey_current
+current_url = current_endpoint + paramset_current
+
+current_load = urlopen(current_url).read()
+soup_current = bs4.BeautifulSoup(current_load,'lxml-xml')
+item_current = soup_current.find_all('item')
+
+df_load_current = pd.DataFrame()
+
+for i in item_current:
+    dt_current= datetime.datetime.strptime(i.find("baseDatetime").text,'%Y%m%d%H%M%S')
+    currPwrTot_current = i.find("currPwrTot").text
+
+    temp_current = pd.DataFrame([[dt_current,currPwrTot_current]],columns=["baseDatetime","currPwrTot"])
+    df_load_current = pd.concat([df_load_current,temp_current],ignore_index=True)
